@@ -3,16 +3,26 @@ import { useDispatch } from "react-redux";
 import { setCredentials, logout } from "../features/auth/authSlice";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const USER_KEY = "hrms_user";
 
 export default function AuthBootstrap({ children }) {
   const [ready, setReady] = useState(false);
   const dispatch = useDispatch();
 
   useEffect(() => {
-    // Use the refresh endpoint on load — returns user + fresh access token using the HttpOnly cookie
     fetch(`${API}/auth/refresh`, { method: "POST", credentials: "include" })
       .then(res => (res.ok ? res.json() : Promise.reject()))
-      .then(data => dispatch(setCredentials({ user: data.user, token: data.accessToken })))
+      .then(data => {
+        // Backend may return just the token, or token + user
+        const storedUser = JSON.parse(localStorage.getItem(USER_KEY) || "null");
+        const user  = data.user  || storedUser;
+        const token = data.accessToken || data.token;
+        if (user && token) {
+          dispatch(setCredentials({ user, token }));
+        } else {
+          dispatch(logout());
+        }
+      })
       .catch(() => dispatch(logout()))
       .finally(() => setReady(true));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps

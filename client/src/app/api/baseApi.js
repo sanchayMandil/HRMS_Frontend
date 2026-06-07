@@ -25,11 +25,10 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
     );
 
     if (refreshResult.data) {
-      // Store the new access token and retry the original request
-      api.dispatch(setCredentials({
-        user: refreshResult.data.user,
-        token: refreshResult.data.accessToken
-      }));
+      const state = api.getState();
+      const token = refreshResult.data.accessToken || refreshResult.data.token;
+      const user  = refreshResult.data.user || state.auth.user;
+      api.dispatch(setCredentials({ user, token }));
       result = await rawBaseQuery(args, api, extraOptions);
     } else {
       // Refresh failed — session fully expired
