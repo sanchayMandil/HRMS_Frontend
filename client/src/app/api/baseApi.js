@@ -1,17 +1,43 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { setCredentials, logout } from "../features/auth/authSlice";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: API_URL,
-  credentials: "include"
+  credentials: "include",
+  prepareHeaders: (headers, { getState }) => {
+    const token = getState().auth.token;
+    if (token) headers.set("authorization", `Bearer ${token}`);
+    return headers;
+  }
 });
 
 const baseQueryWithReauth = async (args, api, extraOptions) => {
-  const result = await rawBaseQuery(args, api, extraOptions);
+  let result = await rawBaseQuery(args, api, extraOptions);
+
   if (result.error?.status === 401) {
-    window.location.href = "/login";
+    // Try a silent refresh using the HTTP-only refresh cookie
+    const refreshResult = await rawBaseQuery(
+      { url: "/auth/refresh", method: "POST" },
+      api,
+      extraOptions
+    );
+
+    if (refreshResult.data) {
+      // Store the new access token and retry the original request
+      api.dispatch(setCredentials({
+        user: refreshResult.data.user,
+        token: refreshResult.data.accessToken
+      }));
+      result = await rawBaseQuery(args, api, extraOptions);
+    } else {
+      // Refresh failed — session fully expired
+      api.dispatch(logout());
+      window.location.href = "/login";
+    }
   }
+
   return result;
 };
 

@@ -9,9 +9,10 @@ export default function AuthBootstrap({ children }) {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    fetch(`${API}/auth/me`, { credentials: "include" })
+    // Use the refresh endpoint on load — returns user + fresh access token using the HttpOnly cookie
+    fetch(`${API}/auth/refresh`, { method: "POST", credentials: "include" })
       .then(res => (res.ok ? res.json() : Promise.reject()))
-      .then(data => dispatch(setCredentials({ user: data.user })))
+      .then(data => dispatch(setCredentials({ user: data.user, token: data.accessToken })))
       .catch(() => dispatch(logout()))
       .finally(() => setReady(true));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
