@@ -15,7 +15,7 @@ export default function LoginPage() {
     event.preventDefault();
     try {
       const result = await login(form).unwrap();
-      dispatch(setCredentials({ user: result.user, token: result.accessToken }));
+      dispatch(setCredentials({ user: result.user }));
       navigate("/");
     } catch (_) {}
   };

@@ -28,7 +28,7 @@ export default function RegisterPage() {
       const payload = { name: form.name, email: form.email, password: form.password, role: "employee" };
       if (form.department) payload.department = form.department;
       const result = await register(payload).unwrap();
-      dispatch(setCredentials({ user: result.user, token: result.accessToken }));
+      dispatch(setCredentials({ user: result.user }));
       navigate("/");
     } catch (_) {}
   };

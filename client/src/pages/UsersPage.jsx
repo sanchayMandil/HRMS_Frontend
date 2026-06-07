@@ -28,7 +28,7 @@ export default function UsersPage() {
   const { data, isLoading, error, isFetching } = useGetUsersQuery(filters);
   const [updateRole, { isLoading: isUpdating }] = useUpdateUserRoleMutation();
 
-  const users = (data?.users ?? []).filter((u) => u._id !== currentUserId);
+  const users = (data?.users ?? []).filter((u) => u._id !== currentUserId && u.role !== "admin");
 
   const handleRoleSave = async (userId) => {
     const newRole = pendingRoles[userId];

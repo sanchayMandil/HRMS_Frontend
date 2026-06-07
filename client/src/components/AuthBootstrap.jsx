@@ -1,62 +1,20 @@
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { setCredentials, logout } from "../features/auth/authSlice";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
-async function fetchMe(token) {
-  const res = await fetch(`${API}/auth/me`, {
-    headers: { Authorization: `Bearer ${token}` },
-    credentials: "include"
-  });
-  if (!res.ok) throw new Error("invalid");
-  const data = await res.json();
-  return data.user;
-}
-
-async function fetchRefresh() {
-  const res = await fetch(`${API}/auth/refresh`, {
-    method: "POST",
-    credentials: "include"  // sends the refresh token cookie
-  });
-  if (!res.ok) throw new Error("refresh_failed");
-  const data = await res.json();
-  return data.accessToken;
-}
-
 export default function AuthBootstrap({ children }) {
   const [ready, setReady] = useState(false);
   const dispatch = useDispatch();
-  const token = useSelector((state) => state.auth.token);
 
   useEffect(() => {
-    const bootstrap = async () => {
-      if (!token) {
-        setReady(true);
-        return;
-      }
-
-      try {
-        // 1. Token exists — verify it's still valid
-        const user = await fetchMe(token);
-        dispatch(setCredentials({ token, user }));
-      } catch {
-        // 2. Token expired — try the refresh token cookie
-        try {
-          const newToken = await fetchRefresh();
-          const user = await fetchMe(newToken);
-          dispatch(setCredentials({ token: newToken, user }));
-        } catch {
-          // 3. Refresh also failed — clear everything, force re-login
-          dispatch(logout());
-        }
-      } finally {
-        setReady(true);
-      }
-    };
-
-    bootstrap();
-  }, []); // runs once on mount
+    fetch(`${API}/auth/me`, { credentials: "include" })
+      .then(res => (res.ok ? res.json() : Promise.reject()))
+      .then(data => dispatch(setCredentials({ user: data.user })))
+      .catch(() => dispatch(logout()))
+      .finally(() => setReady(true));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!ready) {
     return (

@@ -9,9 +9,15 @@ import OvertimePage from "./pages/OvertimePage";
 import ReportsPage from "./pages/ReportsPage";
 import ApprovalsPage from "./pages/ApprovalsPage";
 import UsersPage from "./pages/UsersPage";
+import SettingsPage from "./pages/SettingsPage";
+import TeamPage from "./pages/TeamPage";
+import TeamsPage from "./pages/TeamsPage";
+import { HealthMonitor } from "./components/HealthMonitor";
 
 export default function App() {
   return (
+    <>
+    <HealthMonitor />
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
@@ -25,13 +31,17 @@ export default function App() {
 
           <Route element={<ProtectedRoute roles={["manager", "admin"]} />}>
             <Route path="approvals" element={<ApprovalsPage />} />
+            <Route path="team" element={<TeamPage />} />
           </Route>
 
           <Route element={<ProtectedRoute roles={["admin"]} />}>
             <Route path="users" element={<UsersPage />} />
+            <Route path="teams" element={<TeamsPage />} />
+            <Route path="settings" element={<SettingsPage />} />
           </Route>
         </Route>
       </Route>
     </Routes>
+    </>
   );
 }
