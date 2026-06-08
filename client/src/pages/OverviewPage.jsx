@@ -63,12 +63,12 @@ function StatCard({ label, value, icon: Icon, iconBg, valueColor = "text-[#0f172
 // ─── Employee dashboard stats ─────────────────────────────────────────────────
 
 function EmployeeStats({ data }) {
-  const today   = data?.today      ?? {};
+  const today   = data?.today      ?? null;
   const monthly = data?.monthStats ?? {};
   const ot      = data?.overtime   ?? {};
 
   const todayStatus = (() => {
-    if (!today.punchIn) return { label: "Not punched in yet", cls: "text-[#94a3b8]", dot: "bg-slate-300" };
+    if (!today || !today.punchIn) return { label: "Not punched in yet", cls: "text-[#94a3b8]", dot: "bg-slate-300" };
     if (!today.punchOut) return { label: `Checked in at ${fmtTime(today.punchIn?.time)}`, cls: "text-emerald-600", dot: "bg-emerald-400" };
     return { label: `Completed · ${today.workingHours?.toFixed(1) ?? "?"}h worked`, cls: "text-[#4f46e5]", dot: "bg-indigo-400" };
   })();
@@ -76,12 +76,20 @@ function EmployeeStats({ data }) {
   return (
     <div className="space-y-5">
       {/* Today status pill */}
-      <div className="bg-white rounded-2xl border border-[#e2e8f0] px-5 py-4 flex items-center gap-3">
-        <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${todayStatus.dot}`} />
-        <div>
-          <p className="text-[11px] text-[#94a3b8] font-medium uppercase tracking-wide">Today</p>
-          <p className={`text-sm font-semibold mt-0.5 ${todayStatus.cls}`}>{todayStatus.label}</p>
+      <div className="bg-white rounded-2xl border border-[#e2e8f0] px-5 py-4 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${todayStatus.dot}`} />
+          <div>
+            <p className="text-[11px] text-[#94a3b8] font-medium uppercase tracking-wide">Today</p>
+            <p className={`text-sm font-semibold mt-0.5 ${todayStatus.cls}`}>{todayStatus.label}</p>
+          </div>
         </div>
+        {monthly.averageHours > 0 && (
+          <div className="text-right shrink-0">
+            <p className="text-xs text-[#94a3b8]">Avg / day</p>
+            <p className="text-sm font-bold text-[#4f46e5]">{monthly.averageHours?.toFixed(1)}h</p>
+          </div>
+        )}
       </div>
 
       {/* Monthly breakdown */}
@@ -93,7 +101,7 @@ function EmployeeStats({ data }) {
       </div>
 
       {/* Overtime bar */}
-      {(ot.pending > 0 || ot.approved > 0) && (
+      {(ot.pending > 0 || ot.approved > 0 || ot.rejected > 0) && (
         <div className="bg-white rounded-2xl border border-[#e2e8f0] px-5 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
@@ -118,10 +126,11 @@ function ManagerStats({ data }) {
   const team      = data?.team ?? {};
   const pendingOT = data?.pendingOvertime?.count ?? 0;
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      <StatCard label="Present Today"    value={team.present} icon={UserCheck} iconBg="bg-emerald-500" valueColor="text-emerald-700" />
-      <StatCard label="Absent Today"     value={team.absent}  icon={UserX}     iconBg="bg-red-500"     valueColor="text-red-600" />
-      <StatCard label="Pending Overtime" value={pendingOT}    icon={Timer}     iconBg="bg-amber-500"   valueColor="text-amber-600" />
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <StatCard label="Present Today"    value={team.present}     icon={UserCheck}  iconBg="bg-emerald-500" valueColor="text-emerald-700" />
+      <StatCard label="Absent Today"     value={team.absent}      icon={UserX}      iconBg="bg-red-500"     valueColor="text-red-600" />
+      <StatCard label="Not In Yet"       value={team.notPunched}  icon={Clock}      iconBg="bg-slate-400"   valueColor="text-slate-600" />
+      <StatCard label="Pending Overtime" value={pendingOT}        icon={Timer}      iconBg="bg-amber-500"   valueColor="text-amber-600" />
     </div>
   );
 }
@@ -133,27 +142,20 @@ function AdminStats({ data }) {
   const today   = data?.today ?? {};
   const monthly = data?.month ?? {};
 
-  const absentToday  = today.records
-    ? today.records.filter(r => statusOf(r).label === "Absent").length
-    : (today.absent ?? 0);
-  const presentToday = today.records
-    ? today.records.filter(r => statusOf(r).label !== "Absent").length
-    : (today.present ?? 0);
-
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <StatCard label="Total Users"   value={users.nonAdmin}        icon={Users}     iconBg="bg-indigo-500"  valueColor="text-indigo-700" />
-        <StatCard label="Present Today" value={presentToday}          icon={UserCheck} iconBg="bg-emerald-500" valueColor="text-emerald-700" />
-        <StatCard label="Absent Today"  value={absentToday}           icon={UserX}     iconBg="bg-red-500"     valueColor="text-red-600" />
-        <StatCard label="Pending OT"    value={data?.pendingOvertime} icon={Timer}     iconBg="bg-amber-500"   valueColor="text-amber-600" />
+        <StatCard label="Present Today" value={today.present ?? 0}    icon={UserCheck} iconBg="bg-emerald-500" valueColor="text-emerald-700" />
+        <StatCard label="Absent Today"  value={today.absent  ?? 0}    icon={UserX}     iconBg="bg-red-500"     valueColor="text-red-600" />
+        <StatCard label="Pending OT"    value={data?.pendingOvertime}  icon={Timer}     iconBg="bg-amber-500"   valueColor="text-amber-600" />
       </div>
-      {(monthly.completed != null || monthly.halfDay != null) && (
+      {monthly.completed != null && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <StatCard label="Completed this month"  value={monthly.completed}  icon={CalendarCheck} iconBg="bg-blue-500"   valueColor="text-blue-700" />
-          <StatCard label="Incomplete this month" value={monthly.incomplete} icon={Clock}         iconBg="bg-amber-500"  valueColor="text-amber-600" />
-          <StatCard label="Half Days this month"  value={monthly.halfDay}    icon={TrendingUp}    iconBg="bg-violet-500" valueColor="text-violet-700" />
-          <StatCard label="Absent this month"     value={monthly.absent}     icon={XCircle}       iconBg="bg-red-500"    valueColor="text-red-600" />
+          <StatCard label="Completed this month"   value={monthly.completed}         icon={CalendarCheck} iconBg="bg-blue-500"   valueColor="text-blue-700" />
+          <StatCard label="Incomplete this month"  value={monthly.incomplete}        icon={Clock}         iconBg="bg-amber-500"  valueColor="text-amber-600" />
+          <StatCard label="Half Days this month"   value={monthly.halfDay}           icon={TrendingUp}    iconBg="bg-violet-500" valueColor="text-violet-700" />
+          <StatCard label="Pending Validation"     value={monthly.pendingValidation} icon={AlertTriangle} iconBg="bg-orange-500" valueColor="text-orange-600" />
         </div>
       )}
     </div>
