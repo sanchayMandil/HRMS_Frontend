@@ -311,7 +311,7 @@ export const api = createApi({
 
     // ── Dashboard ─────────────────────────────────────────────────────────
     getDashboard: builder.query({
-      query: () => "/dashboard",
+      query: (date) => `/dashboard${date ? `?date=${date}` : ""}`,
       providesTags: ["Attendance", "Overtime"]
     }),
 

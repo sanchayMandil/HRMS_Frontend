@@ -63,9 +63,9 @@ function StatCard({ label, value, icon: Icon, iconBg, valueColor = "text-[#0f172
 // ─── Employee dashboard stats ─────────────────────────────────────────────────
 
 function EmployeeStats({ data }) {
-  const today   = data?.today   ?? {};
-  const monthly = data?.month   ?? {};
-  const ot      = data?.overtime ?? {};
+  const today   = data?.today      ?? {};
+  const monthly = data?.monthStats ?? {};
+  const ot      = data?.overtime   ?? {};
 
   const todayStatus = (() => {
     if (!today.punchIn) return { label: "Not punched in yet", cls: "text-[#94a3b8]", dot: "bg-slate-300" };
@@ -104,7 +104,7 @@ function EmployeeStats({ data }) {
           <div className="flex items-center gap-2 flex-wrap justify-end">
             {ot.pending  > 0 && <span className="bg-amber-100 text-amber-700 text-xs font-semibold px-2.5 py-1 rounded-full">{ot.pending} pending</span>}
             {ot.approved > 0 && <span className="bg-emerald-100 text-emerald-700 text-xs font-semibold px-2.5 py-1 rounded-full">{ot.approved} approved</span>}
-            {ot.totalHours > 0 && <span className="text-xs text-[#64748b]">{ot.totalHours}h total</span>}
+            {ot.rejected > 0 && <span className="bg-red-100 text-red-600 text-xs font-semibold px-2.5 py-1 rounded-full">{ot.rejected} rejected</span>}
           </div>
         </div>
       )}
@@ -116,7 +116,7 @@ function EmployeeStats({ data }) {
 
 function ManagerStats({ data }) {
   const team      = data?.team ?? {};
-  const pendingOT = data?.pendingOvertime?.count ?? team.pendingOT ?? 0;
+  const pendingOT = data?.pendingOvertime?.count ?? 0;
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <StatCard label="Present Today"    value={team.present} icon={UserCheck} iconBg="bg-emerald-500" valueColor="text-emerald-700" />
@@ -318,7 +318,8 @@ export default function OverviewPage() {
   const actions = actionsByRole[role] || actionsByRole.employee;
   const isManagerOrAdmin = role === "manager" || role === "admin";
 
-  const { data: dashData, isLoading: isDashLoading } = useGetDashboardQuery();
+  const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD in local timezone
+  const { data: dashData, isLoading: isDashLoading } = useGetDashboardQuery(today);
   const dash = dashData?.dashboard ?? dashData;
 
   const yesterday = new Date(Date.now() - 864e5).toISOString().split("T")[0];

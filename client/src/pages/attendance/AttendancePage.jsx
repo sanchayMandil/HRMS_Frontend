@@ -396,10 +396,10 @@ function EmployeeAttendanceView() {
   const isPunchedIn = !!todayRecord?.punchIn;
   const isPunchedOut = !!todayRecord?.punchOut;
 
-  // Assign stream to video element
+  // Assign (or clear) stream on the video element so the camera light turns off properly
   useEffect(() => {
-    if (stream && videoRef.current) {
-      videoRef.current.srcObject = stream;
+    if (videoRef.current) {
+      videoRef.current.srcObject = stream ?? null;
     }
   }, [stream]);
 
