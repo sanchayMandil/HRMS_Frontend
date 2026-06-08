@@ -144,11 +144,12 @@ function AdminStats({ data }) {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <StatCard label="Total Users"   value={users.nonAdmin}        icon={Users}     iconBg="bg-indigo-500"  valueColor="text-indigo-700" />
-        <StatCard label="Present Today" value={today.present ?? 0}    icon={UserCheck} iconBg="bg-emerald-500" valueColor="text-emerald-700" />
-        <StatCard label="Absent Today"  value={today.absent  ?? 0}    icon={UserX}     iconBg="bg-red-500"     valueColor="text-red-600" />
-        <StatCard label="Pending OT"    value={data?.pendingOvertime}  icon={Timer}     iconBg="bg-amber-500"   valueColor="text-amber-600" />
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+        <StatCard label="Total Users"   value={users.nonAdmin}          icon={Users}     iconBg="bg-indigo-500"  valueColor="text-indigo-700" />
+        <StatCard label="Present Today" value={today.present ?? 0}      icon={UserCheck} iconBg="bg-emerald-500" valueColor="text-emerald-700" />
+        <StatCard label="Absent Today"  value={today.absent  ?? 0}      icon={UserX}     iconBg="bg-red-500"     valueColor="text-red-600" />
+        <StatCard label="Not In Yet"    value={today.notPunched ?? 0}   icon={Clock}     iconBg="bg-slate-400"   valueColor="text-slate-600" />
+        <StatCard label="Pending OT"    value={data?.pendingOvertime}   icon={Timer}     iconBg="bg-amber-500"   valueColor="text-amber-600" />
       </div>
       {monthly.completed != null && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">

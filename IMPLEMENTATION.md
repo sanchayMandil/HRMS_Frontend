@@ -103,14 +103,14 @@ What was required by the assessment PDF, what was built, and what was added beyo
 | Employee | OT counts | `dashboard.overtime.pending / approved / rejected` |
 | Manager | Team counts | `dashboard.team.present / absent / notPunched` |
 | Manager | Pending OT | `dashboard.pendingOvertime.count` |
-| Admin | Today counts | `dashboard.today.present / absent` (server pre-calculates, excludes admins) |
+| Admin | Today counts | `dashboard.today.present / absent / notPunched` (server pre-calculates, excludes admins) |
 | Admin | Monthly stats | `dashboard.month.completed / incomplete / halfDay / pendingValidation` |
 | Admin | Pending OT | `dashboard.pendingOvertime` (plain number) |
 
 **Extra beyond PDF:**
 - **Date-aware dashboard** — frontend passes today's date in the user's local timezone (`en-CA` locale → `YYYY-MM-DD`) as a query param. Prevents the Render server's UTC clock from showing the wrong day for IST users.
 - **Average hours/day** shown on employee today pill — from `monthStats.averageHours`.
-- **Not In Yet card** on manager dashboard — `team.notPunched` distinguishes employees who simply haven't arrived from those marked absent.
+- **Not In Yet card** on both manager and admin dashboards — `team.notPunched` (manager) and `today.notPunched` (admin) distinguish employees with no record at all from those explicitly marked absent.
 - **Pending Validation card** on admin monthly row — `month.pendingValidation` shows how many records still need a manager/admin review.
 - **Missed punch alert**: manager/admin sees an amber banner + toast if any employee didn't punch out the previous day. Triggered on page load — no cron job needed (Render free-tier sleeps, so cron was deliberately avoided).
 - **Pending approvals widget** inline on manager/admin dashboard: approve or reject without leaving the Overview page.
