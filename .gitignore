@@ -10,8 +10,3 @@ server/.env
 coverage/
 .DS_Store
 *.log
-_bmad-output/
-.agents
-.claude
-_bmad
-_bmad_output
